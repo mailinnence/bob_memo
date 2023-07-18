@@ -59,19 +59,22 @@ int main(int argc, char* argv[]) {
         }
 
         // Ethernet 헤더를 추출하여 출력
+        printf("------------------------------------------------------------------------------\n");
         struct EthernetHeader* eth_header = (struct EthernetHeader*)packet;
         printf("Ethernet Header\n");
         printf("Src MAC: ");
         print_mac_addr(eth_header->src_mac);
-        printf("Dst MAC: ");
+        printf("  Dst MAC: ");
         print_mac_addr(eth_header->dst_mac);
-        printf("\n");
+        printf("\n\n");
       
         // IP 헤더를 추출하여 출력
         struct ip* ip_header = (struct ip*)(packet + sizeof(struct EthernetHeader));
         printf("Ip_hheader\n");
         printf("Src IP: %s  Dst IP: %s\n", inet_ntoa(ip_header->ip_src), inet_ntoa(ip_header->ip_dst));
-        printf("\n");
+        printf("\n\n");
+        
+        printf("------------------------------------------------------------------------------\n\n\n\n");
     }
 
     pcap_close(pcap);
