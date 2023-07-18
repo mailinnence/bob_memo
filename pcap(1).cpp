@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <netinet/ip.h> // for ip header
+#include <netinet/tcp.h> // for tcp header
 
 void usage() {
     printf("syntax: pcap-test <interface>\n");
@@ -70,11 +71,25 @@ int main(int argc, char* argv[]) {
       
         // IP 헤더를 추출하여 출력
         struct ip* ip_header = (struct ip*)(packet + sizeof(struct EthernetHeader));
-        printf("Ip_hheader\n");
+        printf("IP Header\n");
         printf("Src IP: %s  Dst IP: %s\n", inet_ntoa(ip_header->ip_src), inet_ntoa(ip_header->ip_dst));
         printf("\n\n");
         
-        printf("------------------------------------------------------------------------------\n\n\n\n");
+        // TCP 헤더를 추출하여 출력
+        struct tcphdr* tcp_header = (struct tcphdr*)(packet + sizeof(struct EthernetHeader) + (ip_header->ip_hl << 2));
+        printf("TCP Header\n");
+        printf("Src Port: %u  Dst Port: %u", ntohs(tcp_header->th_sport), ntohs(tcp_header->th_dport));
+        printf("\n");
+        
+        // Payload(Data)의 hexadecimal value 출력
+        const u_char* payload = packet + sizeof(struct EthernetHeader) + (ip_header->ip_hl << 2) + (tcp_header->th_off << 2);
+        int payload_len = ntohs(ip_header->ip_len) - (ip_header->ip_hl << 2) - (tcp_header->th_off << 2);
+        printf("Payload(Data) (Hexadecimal Value):\n");
+        for (int i = 0; i < payload_len && i < 10; i++) {
+            printf("%02x ", payload[i]);
+        }
+        printf("\n");
+        printf("------------------------------------------------------------------------------\n\n\n");
     }
 
     pcap_close(pcap);
