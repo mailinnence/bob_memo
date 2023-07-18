@@ -122,14 +122,63 @@ struct pcap_pkthdr {
 */ -----------------------------------------------------------------------------
 		
 		int res = pcap_next_ex(pcap, &header, &packet);
-		if (res == 0) continue;
-		if (res == PCAP_ERROR || res == PCAP_ERROR_BREAK) {
+/*
+
+pcap_next_ex 함수는 libpcap 라이브러리의 주요 함수 중 하나로, 다음 패킷을 캡처하는 역할을 합니다.
+이 함수는 네트워크 인터페이스로부터 다음 패킷을 읽어와서 메모리에 저장하고, 
+해당 패킷에 대한 정보를 header와 packet 포인터를 통해 제공합니다.
+함수의 반환값은 캡처한 패킷의 성공 여부를 나타내며, 상세한 정보는 res 변수에 저장됩니다.
+
+
+int pcap_next_ex(
+    pcap_t *p,            	      // pcap 핸들
+    struct pcap_pkthdr **pkt_header,  // 캡처한 패킷의 헤더 정보를 저장하기 위한 포인터 변수
+    const u_char **pkt_data	      // 캡처한 패킷의 데이터를 저장하기 위한 포인터 변수
+);
+
+
+>>
+
+int res = pcap_next_ex(
+			pcap, 		// 실시간으로 패킷을 캡처하기 위한 세션
+   			&header, 	// 캡처한 패킷의 헤더 정보
+							struct pcap_pkthdr {
+								struct timeval ts;  // 캡처된 패킷의 타임스탬프 (시간 정보)
+								bpf_u_int32 caplen; // 캡처된 패킷의 길이 (caplen <= len)
+								bpf_u_int32 len;    // 실제 패킷의 길이 (len은 패킷의 전체 길이)
+								};		
+      			&packet		// 캡처한 패킷의 데이터를 저장하기 위한 포인터 변수
+	 );
+*/
+
+
+		
+		if (res == 0) continue;					// res가 0인 경우는 패킷을 캡처하지 못한 경우입니다. 
+									// 즉, 새로운 패킷이 도착하지 않은 상태입니다.
+		if (res == PCAP_ERROR || res == PCAP_ERROR_BREAK) {	// 오류가 발생한 경우 
 			printf("pcap_next_ex return %d(%s)\n", res, pcap_geterr(pcap));
+			// pcap_geterr(pcap) 함수를 사용하여 pcap 핸들에 저장된 오류 메시지를 가져옵니다.
+			// 오류가 발생한 경우: res 값은 PCAP_ERROR 또는 PCAP_ERROR_BREAK와 같은 오류 코드입니다. 
+			// 이 경우 pcap_geterr(pcap) 함수를 사용하여 pcap 핸들에 저장된 오류 메시지를 가져오고, 
+			// 오류 내용과 함께 오류 메시지를 출력
+			// %d와 %s는 printf 함수에서 사용하는 형식 지정자로, 순서대로 res와 pcap_geterr(pcap)의 값을 출력합니다.
 			break;
 		}
 		printf("%u bytes captured\n", header->caplen);
+
+
+/* -----------------------------------------------------------------------------
+struct pcap_pkthdr {
+	struct timeval ts;  // 캡처된 패킷의 타임스탬프 (시간 정보)
+	bpf_u_int32 caplen; // 캡처된 패킷의 길이 (caplen <= len)
+	bpf_u_int32 len;    // 실제 패킷의 길이 (len은 패킷의 전체 길이)
+	};		
+*/ -----------------------------------------------------------------------------
+
 	}
 
 	pcap_close(pcap);
+		// pcap_t 핸들을 닫는 역할을 합니다.
+		// 네트워크 디바이스를 더 이상 사용하지 않을 때 핸들을 닫아 리소스를 반환합니다.
 }
 
