@@ -44,10 +44,16 @@ struct EthernetHeader {
     u_short ether_type; // Ethernet 타입 (2바이트)
 };
 
+
+
+
+// print_mac_addr 함수는 MAC (Media Access Control) 주소를 사람이 읽기 쉬운 형식으로 출력하는 기능을 수행
 void print_mac_addr(const u_char* mac_addr) {
     printf("%02x:%02x:%02x:%02x:%02x:%02x",
            mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
 }
+
+
 
 int main(int argc, char* argv[]) {
     if (!parse(&param, argc, argv))
@@ -63,7 +69,7 @@ int main(int argc, char* argv[]) {
     while (true) {
         struct pcap_pkthdr* header;
         const u_char* packet;
-        int res = pcap_next_ex(pcap, &header, &packet);
+        int res = pcap_next_ex(pcap, &header, &packet);        // 위 과정에서 각 정보들이 pcap , &header , &packet 에 저장됨 
         if (res == 0) continue;
         if (res == PCAP_ERROR || res == PCAP_ERROR_BREAK) {
             printf("pcap_next_ex return %d(%s)\n", res, pcap_geterr(pcap));
@@ -72,7 +78,7 @@ int main(int argc, char* argv[]) {
 
         // Ethernet 헤더를 추출하여 출력
         printf("------------------------------------------------------------------------------\n");
-        struct EthernetHeader* eth_header = (struct EthernetHeader*)packet;
+        struct EthernetHeader* eth_header = (struct EthernetHeader*)packet;    //packet에 저장된 데이터를 구조체로 받음
         printf("Ethernet Header\n");
         printf("Src MAC: ");
         print_mac_addr(eth_header->src_mac);
@@ -81,8 +87,13 @@ int main(int argc, char* argv[]) {
         printf("\n\n");
       
         // IP 헤더를 추출하여 출력
+        // 코드에서 packet은 패킷 데이터가 저장된 포인터이고, sizeof(struct EthernetHeader)는 Ethernet 헤더의 크기를 나타냅니다. 
+        // 이 코드는 Ethernet 헤더를 건너뛰고 IP 헤더의 시작 위치를 찾기 위해 packet 포인터에 Ethernet 헤더의 크기를 더하는 것
+        
         struct ip* ip_header = (struct ip*)(packet + sizeof(struct EthernetHeader));
         printf("IP Header\n");
+        // inet_ntoa() : 네트워크 주소를 사람이 읽기 쉬운 형식인 IPv4 주소 문자열로 변환하는 함수
+        // <netinet/ip.h> 헤더 파일안에 있는 ip 라는 구조체에 담는다.
         printf("Src IP: %s  Dst IP: %s\n", inet_ntoa(ip_header->ip_src), inet_ntoa(ip_header->ip_dst));
         printf("\n\n");
         
