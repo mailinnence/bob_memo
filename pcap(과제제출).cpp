@@ -66,6 +66,16 @@ int main(int argc, char* argv[]) {
         // TCP 헤더를 추출하여 출력
         struct tcphdr* tcp_header = (struct tcphdr*)(packet + sizeof(struct EthernetHeader) + (ip_header->ip_hl << 2));
 
+
+printf("Packet: ");
+for (int i = 0; i < header->caplen; i++) {
+    printf("%02x ", packet[i]);
+}
+printf("\n");
+
+
+
+        
        printf("------------------------------------------------------------------------------\n");
        
         printf("Ethernet Header\n");
