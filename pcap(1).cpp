@@ -76,6 +76,11 @@ int main(int argc, char* argv[]) {
             break;
         }
 
+        // packet 에 대해서 와이어 샤크로 잡았을때 헥사데이터가 보이게 된다.
+        // 거기서 처음 6바이트 dst_mac 다음 6바이트는 src_mac 정보은
+        
+
+        
         // Ethernet 헤더를 추출하여 출력
         printf("------------------------------------------------------------------------------\n");
         struct EthernetHeader* eth_header = (struct EthernetHeader*)packet;    //packet에 저장된 데이터를 구조체로 받음
@@ -96,6 +101,25 @@ int main(int argc, char* argv[]) {
         // <netinet/ip.h> 헤더 파일안에 있는 ip 라는 구조체에 담는다.
         printf("Src IP: %s  Dst IP: %s\n", inet_ntoa(ip_header->ip_src), inet_ntoa(ip_header->ip_dst));
         printf("\n\n");
+
+
+
+        // ip 구조체는 #include <netinet/ip.h> // for ip header 안에 있는 구조체를 가지고 와서 필요한 정보만 담는다.
+        // 구조는 이러하다
+        /*
+            ip_hl: 헤더 길이 (Header Length)를 나타냅니다. 4바이트 단위로 표현되며, 최대 15를 나타냅니다.
+            ip_v: IP 버전을 나타냅니다. IPv4의 경우 4로 설정됩니다.
+            ip_tos: 서비스 유형 (Type of Service)을 나타냅니다.
+            ip_len: IP 패킷의 전체 길이를 나타냅니다.
+            ip_id: 패킷 식별자 (Identification)를 나타냅니다.
+            ip_off: 패킷의 조각화 정보를 나타냅니다.
+            ip_ttl: 패킷의 Time-to-Live (TTL) 값을 나타냅니다.
+            ip_p: 상위 계층 프로토콜 (TCP, UDP 등)을 나타냅니다.
+            ip_sum: IP 헤더의 체크섬 값을 나타냅니다.
+            ip_src: 송신자(IP 출발지 주소)를 나타냅니다.
+            ip_dst: 수신자(IP 도착지 주소)를 나타냅니다.
+        */
+
         
         // TCP 헤더를 추출하여 출력
         struct tcphdr* tcp_header = (struct tcphdr*)(packet + sizeof(struct EthernetHeader) + (ip_header->ip_hl << 2));
