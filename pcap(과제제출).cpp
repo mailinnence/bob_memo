@@ -76,7 +76,8 @@ int main(int argc, char* argv[]) {
         printf("\n\n");
       
         printf("IP Header\n");
-        printf("Src IP: %s  Dst IP: %s", inet_ntoa(ip_header->ip_src), inet_ntoa(ip_header->ip_dst));
+        printf("Src IP: %s ", inet_ntoa(ip_header->ip_src));
+        printf("Dst IP: %s",  inet_ntoa(ip_header->ip_dst));
         printf("\n\n");
         
         printf("TCP Header\n");
