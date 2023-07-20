@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
         
         
         // TCP 헤더를 추출하여 출력
-        struct ip* ip_header = (struct ip*)(packet + sizeof(struct EthernetHeader) + sizeof(struct ip));
+        struct tcphdr* tcp_header = (struct tcphdr*)(packet + sizeof(struct EthernetHeader) + (ip_header->ip_hl << 2));
         printf("TCP Header\n");
         printf("Src Port: %u  Dst Port: %u", ntohs(tcp_header->th_sport), ntohs(tcp_header->th_dport));
         printf("\n");
