@@ -94,14 +94,6 @@ int main(int argc, char* argv[]) {
         // IP 헤더를 추출하여 출력
         // 코드에서 packet은 패킷 데이터가 저장된 포인터이고, sizeof(struct EthernetHeader)는 Ethernet 헤더의 크기를 나타냅니다. 
         // 이 코드는 Ethernet 헤더를 건너뛰고 IP 헤더의 시작 위치를 찾기 위해 packet 포인터에 Ethernet 헤더의 크기를 더하는 것
-        
-        struct ip* ip_header = (struct ip*)(packet + sizeof(struct EthernetHeader));
-        printf("IP Header\n");
-        // inet_ntoa() : 네트워크 주소를 사람이 읽기 쉬운 형식인 IPv4 주소 문자열로 변환하는 함수
-        // <netinet/ip.h> 헤더 파일안에 있는 ip 라는 구조체에 담는다.
-        printf("Src IP: %s  Dst IP: %s\n", inet_ntoa(ip_header->ip_src), inet_ntoa(ip_header->ip_dst));
-        printf("\n\n");
-
 
 
         // ip 구조체는 #include <netinet/ip.h> // for ip header 안에 있는 구조체를 가지고 와서 필요한 정보만 담는다.
@@ -120,12 +112,39 @@ int main(int argc, char* argv[]) {
             ip_dst: 수신자(IP 도착지 주소)를 나타냅니다.
         */
 
+
+        
+        struct ip* ip_header = (struct ip*)(packet + sizeof(struct EthernetHeader));
+        printf("IP Header\n");
+        // inet_ntoa() : 네트워크 주소를 사람이 읽기 쉬운 형식인 IPv4 주소 문자열로 변환하는 함수
+        // <netinet/ip.h> 헤더 파일안에 있는 ip 라는 구조체에 담는다.
+        printf("Src IP: %s  Dst IP: %s\n", inet_ntoa(ip_header->ip_src), inet_ntoa(ip_header->ip_dst));
+        printf("\n\n");
+
+
+        // tcphdr 구조체는 #include <netinet/tcp.h> // for tcp header 안에 있는 구조체를 가지고 와서 필요한 정보만 담는다.
+        // 구조는 이러하다
+        /*
+        th_sport: 송신자 포트 번호를 나타냅니다.
+        th_dport: 수신자 포트 번호를 나타냅니다.
+        th_seq: 시퀀스 번호를 나타냅니다.
+        th_ack: 확인 응답 번호를 나타냅니다.
+        th_off: 데이터 오프셋을 나타냅니다. 4바이트 단위로 표현되며, 최대 15를 나타냅니다.
+        th_flags: 플래그 필드를 나타냅니다. FIN, SYN, RST, PUSH, ACK, URG 플래그 등이 포함됩니다.
+        th_win: 윈도우 크기를 나타냅니다.
+        th_sum: TCP 헤더의 체크섬 값을 나타냅니다.
+        th_urp: 긴급 포인터를 나타냅니다.
+        */
+        
         
         // TCP 헤더를 추출하여 출력
         struct tcphdr* tcp_header = (struct tcphdr*)(packet + sizeof(struct EthernetHeader) + (ip_header->ip_hl << 2));
         printf("TCP Header\n");
         printf("Src Port: %u  Dst Port: %u", ntohs(tcp_header->th_sport), ntohs(tcp_header->th_dport));
         printf("\n");
+
+
+  
         
         // Payload(Data)의 hexadecimal value 출력
         const u_char* payload = packet + sizeof(struct EthernetHeader) + (ip_header->ip_hl << 2) + (tcp_header->th_off << 2);
