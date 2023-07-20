@@ -76,12 +76,12 @@ int main(int argc, char* argv[]) {
         printf("\n\n");
       
         printf("IP Header\n");
-        printf("Src IP: %s  Dst IP: %s\n", inet_ntoa(ip_header->ip_src), inet_ntoa(ip_header->ip_dst));
+        printf("Src IP: %s  Dst IP: %s", inet_ntoa(ip_header->ip_src), inet_ntoa(ip_header->ip_dst));
         printf("\n\n");
         
         printf("TCP Header\n");
         printf("Src Port: %u  Dst Port: %u", ntohs(tcp_header->th_sport), ntohs(tcp_header->th_dport));
-        printf("\n");
+        printf("\n\n");
         
         // Payload(Data)의 hexadecimal value 출력
         const u_char* payload = packet + sizeof(struct EthernetHeader) + (ip_header->ip_hl << 2) + (tcp_header->th_off << 2);
