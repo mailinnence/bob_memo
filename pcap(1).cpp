@@ -139,6 +139,22 @@ int main(int argc, char* argv[]) {
         
         // TCP 헤더를 추출하여 출력
         struct tcphdr* tcp_header = (struct tcphdr*)(packet + sizeof(struct EthernetHeader) + (ip_header->ip_hl << 2));
+/*
+궁금점..!
+struct tcphdr* tcp_header = (struct tcphdr*)(packet + sizeof(struct EthernetHeader) + (ip_header->ip_hl << 2));
+
+이것과
+
+struct tcphdr* tcp_header = (struct tcphdr*)(packet + sizeof(struct EthernetHeader) + sizeof(struct ip_header) );
+
+이거는 같아야 하지 않을까????
+
+다르다 왜냐면 EthernetHeader 는 그 크기가 고정되어 있지만 ip 경우는 그 크기가 각기 다를 수 있다
+때문에  ip_hl: 헤더 길이 (Header Length) 를 이용해서 크기를 가져와야 정확한 위치를 구할 수 있다.
+
+
+*/
+        
         printf("TCP Header\n");
         printf("Src Port: %u  Dst Port: %u", ntohs(tcp_header->th_sport), ntohs(tcp_header->th_dport));
         printf("\n");
