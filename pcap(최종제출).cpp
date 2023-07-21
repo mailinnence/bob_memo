@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
-#include <arpa/inet.h> // Add this header for the inet_ntoa function
+#include <arpa/inet.h> 
 
 void usage() {
     printf("syntax: pcap-test <interface>\n");
@@ -101,13 +101,13 @@ int main(int argc, char* argv[]) {
         printf("\n\n");
 
         // ip 헤더를 추출하여 출력
-    struct ip* ip_header = (struct ip*)(packet + sizeof(struct EthernetHeader));
-    printf("IP Header\n");
-    printf("Src IP: ");
-    print_ip_address(&ip_header->ip_src);
-    printf("  Dst IP: ");
-    print_ip_address(&ip_header->ip_dst);
-    printf("\n\n");
+	struct ip* ip_header = (struct ip*)(packet + sizeof(struct EthernetHeader));
+	printf("IP Header\n");
+    	printf("Src IP: ");
+	print_ip_address(&ip_header->ip_src);
+	printf("  Dst IP: ");
+	print_ip_address(&ip_header->ip_dst);
+	printf("\n\n");
 
  
         // ip 헤더 출력
@@ -119,13 +119,10 @@ int main(int argc, char* argv[]) {
     	// print_ip_address(&ip_header->ip_dst);
     	// printf("\n\n");
 
-
-
-	   struct tcphdr* tcp_header = (struct tcphdr*)(packet + sizeof(struct EthernetHeader) + (ip_header->ip_hl << 2));
+	struct tcphdr* tcp_header = (struct tcphdr*)(packet + sizeof(struct EthernetHeader) + (ip_header->ip_hl << 2));
         printf("TCP Header\n");
         printf("Src Port: %u  Dst Port: %u", ntohs(tcp_header->th_sport), ntohs(tcp_header->th_dport));
         printf("\n\n");
-
 
 
         // Payload(Data)의 hexadecimal value 출력
