@@ -109,14 +109,13 @@ int main(int argc, char* argv[]) {
 	print_ip_address(&ip_header->ip_dst);
 	printf("\n\n");
 
- 
-        // ip 헤더 출력
-    	// struct ip* ip_header = (struct ip*)(packet + sizeof(struct EthernetHeader));
-    	// printf("IP Header\n");
-    	// printf("Src IP: ");
-    	// print_ip_address(&ip_header->ip_src);
-    	// printf("  Dst IP: ");
-    	// print_ip_address(&ip_header->ip_dst);
+        // ip 헤더 헥스값값 출력
+        // printf("IP Header\n");
+        // printf("Src IP: ");
+        // print_ip_hex(&ip_header->ip_src);
+        // printf("  Dst IP: ");
+        // print_ip_hex(&ip_header->ip_dst);
+        // printf("\n\n");
     	// printf("\n\n");
 
 	struct tcphdr* tcp_header = (struct tcphdr*)(packet + sizeof(struct EthernetHeader) + (ip_header->ip_hl << 2));
