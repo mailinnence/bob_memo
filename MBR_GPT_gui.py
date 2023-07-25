@@ -23,11 +23,11 @@ class mbr_vbr():
 
 
 
-    def mbr(self,image_path):
+    def mbr(self,image_file_path):
         with open(image_file_path, "rb") as f:
             data = f.read()
             now = 446
-            print(image_file_path)
+
             for i in range(4):
                 print("----------------------------------------------------")
                 FirstSector = int.from_bytes(data[now + 8:now + 12], byteorder='little')
