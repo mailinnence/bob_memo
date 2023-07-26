@@ -1,34 +1,39 @@
-import pytsk3
+import os
+try:
+    import pytsk3
+except:
+    os.system("pip install pytsk3")
+    import pytsk3
 
 class mbr_vbr():
-    def detect_partition_table_type(self,image_path):
+    def detect_partition_table_type(self, image_path):
         # 이미지 파일을 열고 TSKImg_Info 개체 생성
         img = pytsk3.Img_Info(image_path)
 
         # TSK_VS_TYPE_DETECT 옵션을 사용하여 볼륨 시스템을 탐지하는 객체 생성
         vol = pytsk3.Volume_Info(img)
-        
+
         # 파티션 테이블 유형 판별
-        if vol.info.vstype == pytsk3.TSK_VS_TYPE_GPT:   # gpt
-            mbr_vbr().gpt(image_path)
-        elif vol.info.vstype == pytsk3.TSK_VS_TYPE_DOS: # mbr
-            mbr_vbr().mbr(image_path)
+        if vol.info.vstype == pytsk3.TSK_VS_TYPE_GPT:  # GPT
+            self.gpt(image_path)
+        elif vol.info.vstype == pytsk3.TSK_VS_TYPE_DOS:  # MBR
+            self.mbr(image_path)
         else:
             return "Unknown"
 
-    def mbr(self,image_path):
-        with open(image_file_path, "rb") as f:
+    def mbr(self, image_path):
+        with open(image_path, "rb") as f:
             data = f.read()
             now = 446
-            print(image_file_path)
+            print(image_path)
             for i in range(4):
                 print("----------------------------------------------------")
                 FirstSector = int.from_bytes(data[now + 8:now + 12], byteorder='little')
                 TotalSectors = int.from_bytes(data[now + 12:now + 16], byteorder='little')
                 for y in range(16):
-                    if y==4:
-                        FileSystemId = data[now+y]
-                now+=16
+                    if y == 4:
+                        FileSystemId = data[now + y]
+                now += 16
                 if FileSystemId == 0x07:
                     print("Partition", i + 1)
                     print("NTFS")
@@ -41,12 +46,10 @@ class mbr_vbr():
                     print("Total Sectors:", TotalSectors)
                 else:
                     print("out of scope for homework")
-                print("----------------------------------------------------\n")        
-        
+                print("----------------------------------------------------\n")
 
-
-    def gpt(self,image_file_path):
-        with open(image_file_path, "rb") as f:
+    def gpt(self, image_path):
+        with open(image_path, "rb") as f:
             # Read GPT header (LBA 1, 512 bytes)
             f.seek(512)
             gpt_header = f.read(512)
@@ -65,6 +68,7 @@ class mbr_vbr():
             partition_entries = f.read(partition_entry_size * partition_entry_count)
 
             # Parse partition entries
+            Offset = 1024
             for i in range(partition_entry_count):
                 partition_start_lba = int.from_bytes(partition_entries[i*128 + 32:i*128 + 40], byteorder='little')
                 partition_end_lba = int.from_bytes(partition_entries[i*128 + 40:i*128 + 48], byteorder='little')
@@ -74,18 +78,32 @@ class mbr_vbr():
                 print(f"Partition {i+1}")
                 print(f"Partition Type GUID: {partition_type_guid}")
                 print(f"Unique Partition GUID: {unique_partition_guid}")
-                print(f"First LBA: {partition_start_lba}")
-                print(f"Last LBA: {partition_end_lba}")
+
+                # Determine the file system type
+                f.seek(partition_start_lba * 512)
+                file_system_data = f.read(512)  # Read the first sector of the partition
+                file_system_signature = file_system_data[3:11]
+
+                # Detect known file system signatures
+                if file_system_signature == b'NTFS    ':
+                    print("File System: NTFS")
+                elif file_system_signature == b'FAT32   ':
+                    print("File System: FAT32")
+                else:
+                    print("File System: Unknown")
+
+
+                # Calculate partition size in MB
+                partition_size_mb = (partition_end_lba - partition_start_lba + 1) * 512 / 1024 / 1024
+                print(f"Partition Size: {partition_size_mb:.2f} MB")
+
+                print(f"Offset Sector: {hex(Offset)}")
+                Offset += 32
                 print("----------------------------------------------------")
 
 
 
 
 if __name__ == '__main__':
-    # print("파일의 위치를 입력해주세요 : " , end="")
-    # image_file_path = input()
-    image_file_path = "C:\\Users\\maili\\OneDrive\\바탕 화면\\bob\\임시파일\\gpt_128.dd"
+    image_file_path = ""
     partition_table_type = mbr_vbr().detect_partition_table_type(image_file_path)
-
-
-
