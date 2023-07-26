@@ -1,4 +1,9 @@
-import pytsk3
+import os
+try:
+    import pytsk3
+except:
+    os.system("pip install pytsk3")
+    import pytsk3
 
 class mbr_vbr():
     def detect_partition_table_type(self, image_path):
