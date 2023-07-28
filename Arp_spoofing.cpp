@@ -1,3 +1,128 @@
+// mac.h ---------------------------------------------------------------------------------------
+
+#pragma once
+
+#include <cstdint>
+#include <cstring>
+#include <string>
+
+// ----------------------------------------------------------------------------
+// Mac
+// ----------------------------------------------------------------------------
+struct Mac final {
+	static constexpr int SIZE = 6;
+
+	// constructor
+	Mac() {}
+	Mac(const Mac& r) { memcpy(this->mac_, r.mac_, SIZE); }
+	Mac(const uint8_t* r) { memcpy(this->mac_, r, SIZE); }
+	Mac(const std::string& r);
+
+	// assign operator
+	Mac& operator = (const Mac& r) { memcpy(this->mac_, r.mac_, SIZE); return *this; }
+
+	// casting operator
+	explicit operator uint8_t*() const { return const_cast<uint8_t*>(mac_); }
+	explicit operator std::string() const;
+
+	// comparison operator
+	bool operator == (const Mac& r) const { return memcmp(mac_, r.mac_, SIZE) == 0; }
+	bool operator != (const Mac& r) const { return memcmp(mac_, r.mac_, SIZE) != 0; }
+	bool operator < (const Mac& r) const { return memcmp(mac_, r.mac_, SIZE) < 0; }
+	bool operator > (const Mac& r) const { return memcmp(mac_, r.mac_, SIZE) > 0; }
+	bool operator <= (const Mac& r) const { return memcmp(mac_, r.mac_, SIZE) <= 0; }
+	bool operator >= (const Mac& r) const { return memcmp(mac_, r.mac_, SIZE) >= 0; }
+	bool operator == (const uint8_t* r) const { return memcmp(mac_, r, SIZE) == 0; }
+
+	void clear() {
+		*this = nullMac();
+	}
+
+	bool isNull() const {
+		return *this == nullMac();
+	}
+
+	bool isBroadcast() const { // FF:FF:FF:FF:FF:FF
+		return *this == broadcastMac();
+	}
+
+	bool isMulticast() const { // 01:00:5E:0*
+		return mac_[0] == 0x01 && mac_[1] == 0x00 && mac_[2] == 0x5E && (mac_[3] & 0x80) == 0x00;
+	}
+
+	static Mac randomMac();
+	static Mac& nullMac();
+	static Mac& broadcastMac();
+
+protected:
+	uint8_t mac_[SIZE];
+};
+
+namespace std {
+	template<>
+	struct hash<Mac> {
+		size_t operator() (const Mac& r) const {
+			return std::_Hash_impl::hash(&r, Mac::SIZE);
+		}
+	};
+}
+
+// ------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+// ip.h --------------------------------------------------------------------------------------------
+
+#pragma once
+
+#include <cstdint>
+#include <string>
+
+struct Ip final {
+	static const int SIZE = 4;
+
+	// constructor
+	Ip() {}
+	Ip(const uint32_t r) : ip_(r) {}
+	Ip(const std::string r);
+
+	// casting operator
+	operator uint32_t() const { return ip_; } // default
+	explicit operator std::string() const;
+
+	// comparison operator
+	bool operator == (const Ip& r) const { return ip_ == r.ip_; }
+
+	bool isLocalHost() const { // 127.*.*.*
+		uint8_t prefix = (ip_ & 0xFF000000) >> 24;
+		return prefix == 0x7F;
+	}
+
+	bool isBroadcast() const { // 255.255.255.255
+		return ip_ == 0xFFFFFFFF;
+	}
+
+	bool isMulticast() const { // 224.0.0.0 ~ 239.255.255.255
+		uint8_t prefix = (ip_ & 0xFF000000) >> 24;
+		return prefix >= 0xE0 && prefix < 0xF0;
+	}
+
+protected:
+	uint32_t ip_;
+};
+
+
+// ------------------------------------------------------------------------------------------------
+
+
+
+
+
 // ethhdr.h ---------------------------------------------------------------------------------------
 #pragma once
 #include <arpa/inet.h>
@@ -22,8 +147,6 @@ typedef EthHdr *PEthHdr;
 
 
 // -------------------------------------------------------------------------------------------------
-
-
 
 
 
