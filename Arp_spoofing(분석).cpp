@@ -25,7 +25,51 @@
 
 
 #include <cstring>
+/*
+	<cstring> 라이브러리는 C 스타일 문자열 (null로 끝나는 문자 배열)을 다루는데 사용됩니다. 
+	C++에서 문자열은 std::string 클래스로 표현할 수도 있지만, 
+	기존 C 코드와 상호작용이 필요한 경우 C 스타일 문자열을 사용해야 할 때가 있습니다.
+	<cstring>에서 제공하는 일부 주요 함수들은 다음과 같습니다:
+	
+	strcpy: 문자열을 복사합니다.
+	strcat: 문자열을 이어붙입니다.
+	strlen: 문자열의 길이를 계산합니다.
+	strcmp: 두 문자열을 비교합니다.
+	예시:
+	
+	cpp
+	Copy code
+	#include <cstring>
+	
+	char source[] = "Hello";
+	char destination[20];
+	strcpy(destination, source); // "Hello"를 destination으로 복사합니다.
+
+
+*/
+
+
+
 #include <string>
+/*
+	<string> 라이브러리는 C++에서 문자열을 처리하는 데 사용되는 헤더 파일입니다.  
+	C++에서 제공하는 std::string 클래스는 C 스타일 문자열보다 더 편리하고 유연한 문자열 처리 방법을 제공합니다. 
+	std::string은 문자열의 길이를 자동으로 추적하고, 메모리 관리를 자동으로 
+	처리하여 안전하고 편리한 문자열 조작을 가능하게 합니다.
+	<string>에서 std::string 클래스가 제공하는 일부 주요 멤버 함수들은 다음과 같습니다:
+	
+	append: 문자열을 뒤에 이어붙입니다.
+	length 또는 size: 문자열의 길이를 반환합니다.
+	substr: 문자열의 일부분을 추출합니다.
+	예시:
+	
+	cpp
+	Copy code
+	#include <string>
+	
+	std::string myString = "Hello, C++!";
+	myString.append(" Welcome"); // "Welcome"을 문자열 끝에 추가합니다.
+*/
 
 // ----------------------------------------------------------------------------
 // Mac
