@@ -1,13 +1,7 @@
-
-#include <stdlib.h>
-
-
 #include <signal.h>
 #include <stdbool.h>
-
 #include <netinet/ip.h>
 #include <netinet/udp.h>
-
 #include <arpa/inet.h> 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,14 +10,11 @@
 #include <linux/types.h>
 #include <linux/netfilter.h>		
 #include <errno.h>
-
 #include <libnetfilter_queue/libnetfilter_queue.h>
 
 
 
 void handleCtrlC(int signal);
-
-
 
 void handleCtrlC(int signal) {
     system("sudo iptables -F"); 
@@ -35,15 +26,10 @@ void handleCtrlC(int signal) {
 
 void dump(unsigned char* buf, int size) {
 
-
-        
 	struct ip* ip_header = (struct ip*)buf;
 	struct udphdr*  udp_header = (struct udphdr*)(buf  + (ip_header->ip_hl << 2));
 	
-	
 	if (ip_header->ip_p == 17) 			{
-	
-	
 		for (int i = 0; i < size; i++)	 {
 			if (i != 0 && i % 16 == 0)
 				printf("\n");
@@ -58,8 +44,6 @@ void dump(unsigned char* buf, int size) {
 				printf("\n");
 			printf("%02X ", buf[i]);
 		}
-		
-		
 	}
 	printf("\n");
 }
@@ -84,54 +68,14 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 {
 	int id = 0;
 	struct nfqnl_msg_packet_hdr *ph;
-	struct nfqnl_msg_packet_hw *hwph;
+	
 	u_int32_t mark,ifi;
 	int ret;
 	unsigned char *data;
 
 	ph = nfq_get_msg_packet_hdr(tb);
-	if (ph) {
-		id = ntohl(ph->packet_id);
-		printf("hw_protocol=0x%04x hook=%u id=%u ",
-			ntohs(ph->hw_protocol), ph->hook, id);
-	}
-
-	hwph = nfq_get_packet_hw(tb);
-	if (hwph) {
-		int i, hlen = ntohs(hwph->hw_addrlen);
-
-		printf("hw_src_addr=");
-		for (i = 0; i < hlen-1; i++)
-			printf("%02x:", hwph->hw_addr[i]);
-		printf("%02x ", hwph->hw_addr[hlen-1]);
-	}
-
-	mark = nfq_get_nfmark(tb);
-	if (mark)
-		printf("mark=%u ", mark);
-
-	ifi = nfq_get_indev(tb);
-	if (ifi)
-		printf("indev=%u ", ifi);
-
-	ifi = nfq_get_outdev(tb);
-	if (ifi)
-		printf("outdev=%u ", ifi);
-	ifi = nfq_get_physindev(tb);
-	if (ifi)
-		printf("physindev=%u ", ifi);
-
-	ifi = nfq_get_physoutdev(tb);
-	if (ifi)
-		printf("physoutdev=%u ", ifi);
-
-	ret = nfq_get_payload(tb, &data);
-	if (ret >= 0)
-		printf("payload_len=%d\n", ret);
-		dump(data , ret);
-		printf("\n");
-	fputc('\n', stdout);
-
+	id = ntohl(ph->packet_id);
+	
 	return id;
 }
 
@@ -148,11 +92,9 @@ nfq_set_verdict 함수를 호출하여 패킷을 어떻게 처리할지 결정�
 */
 
 
-static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
-	      struct nfq_data *nfa, void *data)
+static int cb(struct nfq_q_handle *qh , struct nfgenmsg *nfmsg , struct nfq_data *nfa, void *data)
 {
 	u_int32_t id = print_pkt(nfa);
-	printf("entering callback\n");
 	return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);
 }
 
@@ -386,11 +328,32 @@ fd = nfq_fd(h);는 libnetfilter_queue 라이브러리에서 제공하는 함수 
 이렇게 얻은 파일 디스크립터를 이용하여 넷필터로부터 패킷을 읽어올 수 있습니다.
 */
 
-	
-	for (;;) {
+
+	// 넷필터를 사용하여 캡처한 패킷을 읽어오고 처리하는 루프
+	for (;;) {	
 		if ((rv = recv(fd, buf, sizeof(buf), 0)) >= 0) {
+	/*
+		recv 함수:
+		ssize_t recv(int sockfd, void *buf, size_t len, int flags);
+		
+		이 함수는 파일 디스크립터 fd에서 데이터를 읽어오는 역할을 합니다. 
+		buf에 읽은 데이터를 저장하며, len은 읽을 최대 바이트 수를 나타냅니다. 
+		flags는 함수 호출 동작을 제어하는 플래그입니다. 
+		함수는 읽은 바이트 수를 반환하거나 오류가 발생하면 -1을 반환합니다.
+ 	*/
 			printf("pkt received\n");
 			nfq_handle_packet(h, buf, rv);
+
+	/*
+		nfq_handle_packet 함수:
+		int nfq_handle_packet(struct nfq_handle *h, char *buf, int len);
+		
+		이 함수는 캡처한 패킷을 처리하는 역할을 합니다. 
+		넷필터 핸들 h와 패킷 데이터 buf를 매개변수로 받으며, 
+		len은 패킷의 길이를 나타냅니다. 
+		이 함수는 캡처한 패킷을 적절한 처리를 위해 큐 핸들의 콜백 함수로 보내주는 역할을 합니다.
+	*/
+			
 			continue;
 		}
 		if (rv < 0 && errno == ENOBUFS) {
@@ -400,16 +363,47 @@ fd = nfq_fd(h);는 libnetfilter_queue 라이브러리에서 제공하는 함수 
 		perror("recv failed");
 		break;
 	}
-
+	/*
+	 	루프내
+		1.recv 함수를 통해 패킷을 읽어옵니다.
+		2.rv에는 읽은 바이트 수가 저장됩니다.
+		3.읽은 패킷 데이터를 nfq_handle_packet 함수에 전달하여 패킷을 처리합니다.
+		4.ENOBUFS 오류가 발생하면 패킷을 읽을 수 없는 상황으로, 패킷을 잃어버린 것을 나타냅니다. 이 경우 계속해서 다음 패킷을 읽어오도록 합니다.
+		5.rv가 음수이고 오류가 ENOBUFS가 아닌 다른 오류인 경우, perror 함수를 사용하여 오류 메시지를 출력하고 루프를 종료합니다.
+	*/
+	
 	printf("unbinding from queue 0\n");
 	nfq_destroy_queue(qh);
 
-
+	/*
+		nfq_destroy_queue 함수는 libnetfilter_queue 라이브러리에서 제공되며, 
+		생성된 큐 핸들을 파괴하고 관련 리소스를 해제하는 역할을 수행합니다. 
+		이 함수를 사용하여 큐 핸들을 사용한 후에는 해당 핸들을 메모리에서 
+		해제하여 누수(leak)를 방지하고 프로그램 종료 시에 자원을 올바르게 정리할 수 있습니다.
+		
+		void nfq_destroy_queue(struct nfq_q_handle *qh);
+		
+		qh: 파괴하고자 하는 큐 핸들을 나타내는 구조체 포인터입니다.
+		이 함수를 호출하면 큐 핸들이 파괴되며, 큐에 연관된 리소스 및 설정들이 해제됩니다. 
+		
+		이후에는 해당 핸들을 더 이상 사용해서는 안됩니다.
+		이 함수를 사용하여 네트필터 큐 핸들을 정리하고 해제하는 것은 메모리 누수와 같은 문제를 방지하는데 중요한 역할을 합니다.
+	*/
 	
 
 #ifdef INSANE
-	/* normally, applications SHOULD NOT issue this command, since
-	 * it detaches other programs/sockets from AF_INET, too ! */
+	
+	/*
+	이 부분은 컴파일러 지시문으로, INSANE이라는 매크로가 정의되어 있을 때에만 해당 블록의 코드가 컴파일되도록 설정합니다. 
+	매크로가 정의되어 있지 않으면 이 부분의 코드는 무시됩니다.
+	
+	
+	위 코드에서는 INSANE 매크로가 정의된 경우에만, 
+	nfq_unbind_pf 함수를 호출하여 프로토콜 패밀리 AF_INET에 대한 넷필터 핸들을 언바인딩합니다. 
+	이는 프로그램 종료 시 넷필터와의 연결을 정리하는 작업입니다.
+	*/
+
+	
 	printf("unbinding from AF_INET\n");
 	nfq_unbind_pf(h, AF_INET);
 #endif
@@ -417,7 +411,17 @@ fd = nfq_fd(h);는 libnetfilter_queue 라이브러리에서 제공하는 함수 
 	printf("closing library handle\n");
 	nfq_close(h);
 
-	exit(0);
+	
+	/*
+		nfq_close:
+		void nfq_close(struct nfq_handle *h);
+		
+		이 함수는 넷필터 핸들을 닫아서 관련 리소스를 해제하는 역할을 합니다. 
+  		이 함수를 호출하면 넷필터 라이브러리와 관련된 메모리와 자원을 올바르게 정리합니다.
+	 */
+
+	
+	exit(0);  // 이 함수는 프로그램을 종료하는 역할을 합니다. 인자로 전달되는 값은 종료 상태 코드를 나타냅니다. 0은 정상 종료를 나타냅니다.
 	
 	
 }
