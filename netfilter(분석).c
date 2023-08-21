@@ -62,23 +62,52 @@ void dump(unsigned char* buf, int size) {
 패킷의 정보(프로토콜, MAC 주소, 데이터 길이 등)을 출력하고, dump 함수를 호출하여 패킷 데이터를 출력합니다.
 
 */
+static u_int32_t print_pkt(struct nfq_data *tb) {
+    int id = 0;
+    struct nfqnl_msg_packet_hdr *ph;
+    u_int32_t mark, ifi;
+    int ret;
+    unsigned char *data;
 
+    ph = nfq_get_msg_packet_hdr(tb);
+    id = ntohl(ph->packet_id);
 
-static u_int32_t print_pkt (struct nfq_data *tb)
-{
-	int id = 0;
-	struct nfqnl_msg_packet_hdr *ph;
-	
-	u_int32_t mark,ifi;
-	int ret;
-	unsigned char *data;
+    struct ip *ip_header;
+    struct tcphdr *tcp_header;
 
-	ph = nfq_get_msg_packet_hdr(tb);
-	id = ntohl(ph->packet_id);
-	
-	return id;
+    if ((ret = nfq_get_payload(tb, &data)) >= 0) {
+        ip_header = (struct ip *)data;
+        tcp_header = (struct tcphdr *)(data + (ip_header->ip_hl << 2));
+
+        if (ip_header->ip_p == IPPROTO_TCP) {
+
+            // 페이로드에서 "GET" 확인
+            char *payload = (char *)(data + (ip_header->ip_hl << 2) + sizeof(struct tcphdr));
+            if (ret > (ip_header->ip_hl << 2) + sizeof(struct tcphdr) + 3 &&
+                payload[0] == 'G' && payload[1] == 'E' && payload[2] == 'T') {
+
+                // HTTP 헤더에서 "Host" 필드 찾기
+                char *findhost = strstr(payload, "Host: ");
+                if (findhost) {
+                    findhost += 6; 
+                    char *hostend = strchr(findhost, '\r');
+                    if (hostend) {
+                        *hostend = '\0';
+             
+                        // 입력받은 호스트명과 비교
+                      //  char *hostname = "example.com"; 
+                        if (strcmp(findhost, hostname) == 0) {
+        
+                            return 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return 0;
 }
-
 
 
 
@@ -95,7 +124,18 @@ nfq_set_verdict 함수를 호출하여 패킷을 어떻게 처리할지 결정�
 static int cb(struct nfq_q_handle *qh , struct nfgenmsg *nfmsg , struct nfq_data *nfa, void *data)
 {
 	u_int32_t id = print_pkt(nfa);
-	return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);
+	if (id == 0){	
+	
+	return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);	
+	
+	}
+	
+	else if(id == 1){
+	
+	return nfq_set_verdict(qh, id, NF_DROP, 0, NULL);
+	
+	}
+
 }
 
 
